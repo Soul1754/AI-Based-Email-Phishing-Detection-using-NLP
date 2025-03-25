@@ -10,11 +10,11 @@ from tqdm import tqdm
 import argparse
 
 from data_preprocessing import prepare_data
-from model import EmailDataset, BertEmailClassifier
+from model import EmailDataset, BertLSTMClassifier
 
 def train_model(model, train_dataloader, val_dataloader, optimizer, scheduler, device, num_epochs=5):
     """
-    Train the BERT model for email classification.
+    Train the BERT-LSTM model for email classification.
     
     Args:
         model: The BERT model
@@ -53,7 +53,12 @@ def train_model(model, train_dataloader, val_dataloader, optimizer, scheduler, d
             
             # Forward pass
             optimizer.zero_grad()
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            
+            # Update the forward pass in the training loop:
+            outputs = model(
+                input_ids=input_ids.to(device),
+                attention_mask=attention_mask.to(device)
+            )
             
             # Calculate loss
             loss = criterion(outputs, labels)
@@ -179,8 +184,12 @@ def main(args):
         test_dataset, batch_size=args.batch_size
     )
     
-    # Initialize model
-    model = BertEmailClassifier(num_classes=2, dropout_rate=args.dropout_rate)
+    # Initialize the BERT-LSTM model
+    model = BertLSTMClassifier(
+        hidden_size=256,
+        num_layers=2,
+        dropout_rate=args.dropout_rate
+    )
     model.to(device)
     
     # Initialize optimizer

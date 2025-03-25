@@ -24,37 +24,35 @@ def clean_text(text):
 
 def load_and_preprocess_data(data_path, test_size=0.2, random_state=42):
     """
-    Load and preprocess email data.
-    
-    Args:
-        data_path: Path to the dataset
-        test_size: Proportion of data to use for testing
-        random_state: Random seed for reproducibility
-        
-    Returns:
-        Preprocessed train and test datasets
+    Load and preprocess phishing email data.
     """
     # Load the dataset
     try:
         df = pd.read_csv(data_path)
+        # Print column names to debug
+        print("Available columns:", df.columns.tolist())
     except:
-        try:
-            df = pd.read_excel(data_path)
-        except:
-            raise ValueError("Unsupported file format. Please provide CSV or Excel file.")
+        raise ValueError("Unable to load CSV file. Please check the file path and format.")
     
-    # Check if the dataset has the expected columns
-    required_columns = ['text', 'label']
-    if not all(col in df.columns for col in required_columns):
-        # Try to infer columns
-        if len(df.columns) >= 2:
-            # Assume first column is text and second is label
-            df.columns = ['text', 'label'] + list(df.columns[2:])
-        else:
-            raise ValueError(f"Dataset must contain columns: {required_columns}")
+    # Rename columns if needed (adjust these based on your CSV structure)
+    column_mapping = {
+        'text': 'text',  # Update this with actual column name
+        'label': 'label'  # Update this with actual column name
+    }
+    
+    # Only rename columns if they exist and need renaming
+    existing_columns = df.columns.tolist()
+    column_mapping = {k: v for k, v in column_mapping.items() if k in existing_columns}
+    if column_mapping:
+        df = df.rename(columns=column_mapping)
+    
+    # Convert label to numeric if needed (0 for legitimate, 1 for phishing)
+    if 'label' in df.columns and df['label'].dtype == 'object':
+        df['label'] = (df['label'].str.lower() == 'phishing').astype(int)
     
     # Clean the text data
-    df['cleaned_text'] = df['text'].apply(clean_text)
+    text_column = 'text' if 'text' in df.columns else df.columns[0]  # Use first column if 'text' not found
+    df['cleaned_text'] = df[text_column].apply(clean_text)
     
     # Drop rows with empty text after cleaning
     df = df.dropna(subset=['cleaned_text'])
@@ -64,8 +62,11 @@ def load_and_preprocess_data(data_path, test_size=0.2, random_state=42):
         df, test_size=test_size, random_state=random_state, stratify=df['label']
     )
     
+    print(f"Total dataset size: {len(df)}")
     print(f"Training set size: {len(train_df)}")
     print(f"Testing set size: {len(test_df)}")
+    print(f"Phishing emails: {df['label'].sum()}")
+    print(f"Legitimate emails: {len(df) - df['label'].sum()}")
     
     return train_df, test_df
 
@@ -132,6 +133,6 @@ def prepare_data(data_path, max_length=128):
 
 if __name__ == "__main__":
     # Example usage
-    data_path = "/Users/siddhantgaikwad/Developer/College/TY/CS/CP/email_detection/data/email_dataset.csv"
+    data_path = "/Users/siddhantgaikwad/Developer/College/TY/CS/CP/email_detection/data/phishing_email.csv"
     train_encodings, test_encodings, train_labels, test_labels, tokenizer = prepare_data(data_path)
     print("Data preprocessing completed successfully!")
