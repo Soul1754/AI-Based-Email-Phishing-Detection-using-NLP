@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Phishing Detection</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .highlight {
+        background-color: red;
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Email Phishing Detection</h1>
+    <form id="emailForm">
+      <textarea
+        id="emailText"
+        rows="10"
+        cols="50"
+        placeholder="Enter email text here..."
+      ></textarea
+      ><br />
+      <button type="button" onclick="submitEmail()">Check Email</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+      function submitEmail() {
+        const text = document.getElementById("emailText").value;
+        fetch("/predict", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `<h2>Prediction: ${
+              data.prediction
+            }</h2><p>Confidence: ${data.confidence.toFixed(4)}</p>`;
+            let highlightedText = text;
+            for (const [word, importance] of Object.entries(
+              data.word_importance
+            )) {
+              const regex = new RegExp(`\b${word}\b`, "gi");
+              highlightedText = highlightedText.replace(
+                regex,
+                `<span class="highlight">${word}</span>`
+              );
+            }
+            resultDiv.innerHTML += `<p>${highlightedText}</p>`;
+          });
+      }
+    </script>
+  </body>
+</html>
