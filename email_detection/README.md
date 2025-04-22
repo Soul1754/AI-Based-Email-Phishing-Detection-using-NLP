@@ -26,13 +26,15 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Note: All scripts must be run with Python 3. Use `python3` command explicitly for both installation and running the model.
+
 ## Configuration
 
 Create `.env` file with:
 
 ```ini
 # Data paths
-DATA_PATH=./data
+DATA_PATH=./data/phishing_email.csv
 
 # Model paths
 MODEL_DIR=./models

@@ -330,16 +330,23 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train BERT model for email classification")
-    parser.add_argument("--data_path", type=str, required=True, help="Path to the dataset")
-    parser.add_argument("--model_dir", type=str, default="/Users/siddhantgaikwad/Developer/College/TY/CS/CP/email_detection/models", help="Directory to save the model")
-    parser.add_argument("--batch_size", type=int, default=16, help="Batch size for training")
-    parser.add_argument("--num_epochs", type=int, default=5, help="Number of training epochs")
-    parser.add_argument("--learning_rate", type=float, default=2e-5, help="Learning rate")
-    parser.add_argument("--weight_decay", type=float, default=0.01, help="Weight decay")
-    parser.add_argument("--dropout_rate", type=float, default=0.1, help="Dropout rate")
-    parser.add_argument("--max_length", type=int, default=128, help="Maximum sequence length")
-    parser.add_argument("--generate_explanations", action="store_true", help="Generate model explanations")
+    parser.add_argument("--data_path", type=str, default=os.getenv("DATA_PATH"), help="Path to the dataset")
+    parser.add_argument("--model_dir", type=str, default=os.getenv("MODEL_DIR", "/Users/siddhantgaikwad/Developer/College/TY/CS/CP/email_detection/models"), help="Directory to save the model")
+    parser.add_argument("--batch_size", type=int, default=int(os.getenv("BATCH_SIZE", "16")), help="Batch size for training")
+    parser.add_argument("--num_epochs", type=int, default=int(os.getenv("NUM_EPOCHS", "5")), help="Number of training epochs")
+    parser.add_argument("--learning_rate", type=float, default=float(os.getenv("LEARNING_RATE", "2e-5")), help="Learning rate")
+    parser.add_argument("--weight_decay", type=float, default=float(os.getenv("WEIGHT_DECAY", "0.01")), help="Weight decay")
+    parser.add_argument("--dropout_rate", type=float, default=float(os.getenv("DROPOUT_RATE", "0.1")), help="Dropout rate")
+    parser.add_argument("--max_length", type=int, default=int(os.getenv("MAX_LENGTH", "128")), help="Maximum sequence length")
+    parser.add_argument("--generate_explanations", action="store_true", default=os.getenv("GENERATE_EXPLANATIONS", "").lower() == "true", help="Generate model explanations")
     parser.add_argument("--num_explanations", type=int, default=5, help="Number of examples to explain")
     
     args = parser.parse_args()
+    
+    # Validate required arguments
+    if not args.data_path:
+        print("Error: Data path is required. Either provide --data_path argument or set DATA_PATH environment variable.")
+        parser.print_help()
+        exit(1)
+    
     main(args)
